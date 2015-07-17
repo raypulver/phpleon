@@ -1,11 +1,18 @@
 <?php
   include_once 'leon.php';
-  class LeonTest extends PHPUnit_Framework_TestCase {
+  use LEON\Channel;
+  use LEON\RegExp;
+  use LEON\Date;
+  use LEON\Undefined;
+  class LEONTest extends PHPUnit_Framework_TestCase {
     function test_bijection() {
       $payload = array();
       $payload['a'] = 1;
       $payload['b'] = 2;
       $this->assertEquals(leon_decode(leon_encode($payload)), $payload);
+    }
+    function test_signed() {
+      $this->assertEquals(leon_decode(leon_encode(-500)), -500);
     }
     function test_channel() {
       $payload = array();
@@ -13,9 +20,9 @@
       $template['c'] = LEON_STRING;
       $template['d'] = array();
       $template['d'][] = array();
-      $template['d'][0]['a'] = LEON_SIGNED_CHAR;
+      $template['d'][0]['a'] = LEON_CHAR;
       $template['d'][0]['b'] = LEON_BOOLEAN;
-      $channel = new LEON_Channel($template);
+      $channel = new Channel($template);
       $obj = array();
       $obj['c'] = "woop";
       $obj['d'] = array();
@@ -33,7 +40,7 @@
       $template['strings'][] = LEON_STRING;
       $template['numbers'] = array();
       $template['numbers'][] = LEON_INT;
-      $channel = new LEON_Channel($template);
+      $channel = new Channel($template);
       $payload = array();
       $payload['strings'] = array();
       $payload['strings'][] = "the";
@@ -52,6 +59,21 @@
       $EPS = 0.0001;
       $payload = -232.2222;
       $this->assertEquals(abs(leon_decode(leon_encode($payload)) - $payload) < $EPS, TRUE);
+    }
+    function test_regexp() {
+      $regexp = new RegExp('^$');
+      $this->assertEquals(leon_decode(leon_encode($regexp))->toString(), '^$');
+    }
+    function test_date() {
+      $time = 1437149199;
+      $date = new LEON\Date($time);
+      $this->assertEquals(leon_decode(leon_encode($date))->timestamp, $time);
+    }
+    function test_nan() {
+      $this->assertEquals(leon_decode(leon_encode(new LEON\NaN())) instanceof LEON\NaN, true);
+    }
+    function test_undefined() {
+      $this->assertEquals(leon_decode(leon_encode(new LEON\Undefined())) instanceof LEON\Undefined, true);
     }
   }
 ?>
