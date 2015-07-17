@@ -1,4 +1,5 @@
 {
+  "name": "leon/leon",
   "version": "1.0.0",
   "description": "LEON serialization for PHP.",
   "require": {
