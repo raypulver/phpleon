@@ -62,7 +62,7 @@
     }
     function test_regexp() {
       $regexp = new RegExp('^$');
-      $this->assertEquals(leon_decode(leon_encode($regexp))->toString(), '^$');
+      $this->assertEquals(leon_decode(leon_encode($regexp))->toString(), '/^$/');
     }
     function test_date() {
       $time = 1437149199;
@@ -74,6 +74,9 @@
     }
     function test_undefined() {
       $this->assertEquals(leon_decode(leon_encode(new LEON\Undefined())) instanceof LEON\Undefined, true);
+    }
+    function test_regexp_with_modifier() {
+      $this->assertEquals(leon_decode(leon_encode(new LEON\RegExp('54', 'i')))->toString(), '/54/i');
     }
   }
 ?>

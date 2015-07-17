@@ -19,14 +19,15 @@ define("LEON_DATE", 0x15);
 define("LEON_BUFFER", 0x16);
 define("LEON_REGEXP", 0x17);
 define("LEON_NAN", 0x18);
+define("LEON_INFINITY", 0x19);
+define("LEON_MINUS_INFINITY", 0x1A);
 
 function leon_encode ($payload) {
   $enc = new LEON\Encoder($payload);
   return $enc->writeSI()->writeOLI()->writeData()->export();
 }
 function leon_decode ($buffer) {
-  $buffer = new LEON\StringBuffer($buffer);
-  $parser = new LEON\Parser($buffer);
+  $parser = new LEON\Parser(new LEON\StringBuffer($buffer));
   return $parser->parseSI()->parseOLI()->parseValue();
 }
 ?>

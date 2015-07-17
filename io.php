@@ -7,6 +7,7 @@ include_once 'date.php';
 include_once 'nan.php';
 include_once 'undefined.php';
 include_once 'string-buffer.php';
+include_once 'infinity.php';
 
 define("SIGNED", 0x01);
 define("CHAR", 0x00);
@@ -25,6 +26,8 @@ define("DATEVAL", 0x15);
 define("BUFFER", 0x16);
 define("REGEXP", 0x17);
 define("NANV", 0x18);
+define("INFINITY", 0x19);
+define("MINUSINFINITY", 0x1A);
 define("EMPTYINDEX", 0xFF);
 function is_hash($arr) {
   return array_keys($arr) != range(0, count($arr) - 1);
@@ -109,7 +112,7 @@ class Parser {
     return $ret;
   }
   function readRegExp() {
-    return new RegExp($this->readString());
+    return new RegExp($this->readString(), $this->readString());
   }
   function readDate() {
     return new Date($this->buffer->readUInt32());
@@ -222,6 +225,10 @@ class Parser {
       return $this->readRegExp();
     } else if ($type === BUFFER) {
       return $this->readBuffer();
+    } else if ($type === INFINITY) {
+      return new Infinity();
+    } else if ($type === MINUSINFINITY) {
+      return new MinusInfinity();
     } else {
       return;
     }
@@ -237,6 +244,8 @@ function type_check ($val) {
     if ($val instanceof Date) return DATEVAL;
     if ($val instanceof Buffer) return BUFFER;
     if ($val instanceof RegExp) return REGEXP;
+    if ($val instanceof Infinity) return INFINITY;
+    if ($val instanceof MinusInfinity) return MINUSINFINITY;
   }
   if (is_array($val)) {
     if (is_hash($val)) return OBJECTV;
@@ -316,7 +325,7 @@ class Encoder {
     else $implicit = FALSE;
     $typeByte = new StringBuffer();
     $typeByte->writeUInt8($type, 0);
-    if ($type === UNDEFINED || $type === TRUEVAL || $type === FALSEVAL || $type === NULLVAL || $type === NANV) {
+    if ($type === UNDEFINED || $type === TRUEVAL || $type === FALSEVAL || $type === NULLVAL || $type === NANV || $type === MINUSINFINITY || $type === INFINITY) {
       $this->append($typeByte);
       return 1;
     }
@@ -394,8 +403,9 @@ class Encoder {
       }
       return $typeCheck + strlen($val->buffer);
     } else if ($type === REGEXP) {
-      $this->writeString($val->toString());
-      return $byteCount + strlen($val->toString());
+      $this->writeString($val->pattern);
+      $this->writeString($val->modifier);
+      return $byteCount + 2 + strlen($val->pattern) + strlen($val->modifier);
     } else if ($type === DATEVAL) {
       $this->writeValue($val->timestamp, INTV, true);
       return $byteCount + 4;
