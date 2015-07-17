@@ -1,3 +1,7 @@
 {
   "version": "1.0.0",
+  "description": "LEON serialization for PHP.",
+  "require": {
+    "php": ">=5.3.0"
+  }
 }
