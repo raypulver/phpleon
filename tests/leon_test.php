@@ -60,6 +60,11 @@
       $payload = -232.2222;
       $this->assertEquals(abs(leon_decode(leon_encode($payload)) - $payload) < $EPS, TRUE);
     }
+    function test_double() {
+      $payload = -232.222;
+      $channel = new LEON\Channel(LEON_DOUBLE);
+      $this->assertEquals($payload, $channel->decode($channel->encode($payload)));
+    }
     function test_regexp() {
       $regexp = new RegExp('^$');
       $this->assertEquals(leon_decode(leon_encode($regexp))->toString(), '/^$/');

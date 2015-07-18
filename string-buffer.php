@@ -55,7 +55,7 @@ function bytes($v, $type) {
     $log = log($v)/log(2);
     if ($log < 0) $log = ceil($log);
     else $log = floor($log);
-    $v *= pow(2, -log + 52);
+    $v *= pow(2, -$log + 52);
     $exp += $log;
     $v = round($v);
     $v = bindec(substr(decbin($v), 1));
@@ -66,6 +66,7 @@ function bytes($v, $type) {
     $sh = 40;
     for ($i = 0; $i < 6; ++$i) {
       $ret[] = floor($v*pow(2, -$sh)) & 0xFF;
+      $sh -= 8;
     }
     return $ret;
   }
