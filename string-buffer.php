@@ -106,9 +106,16 @@ class StringBuffer {
     }
     return new self($accum);
   }
+  private function normalize($i, $isRead) {
+    if ($i < 0 && strlen($this->buffer) === 0) return 0;
+    if ($i === -1) $i = strlen($this->buffer) - ($isRead ? 1 : 0);
+    else if ($i < 0) $i = strlen($this->buffer) + ($isRead ? 0: 1) + ($i % (strlen($this->buffer) + ($isRead ? 0: 1)) ); 
+    return $i;
+  }
   function writeUInt8($v, $i) {
     $v = intval($v);
-    if ($i === -1 || $i >= strlen($this->buffer)) {
+    $i = $this->normalize($i, false);
+    if ($i >= strlen($this->buffer)) {
       $this->buffer .= chr($v);
     } else {
       $this->buffer = substr($this->buffer, 0, $i) . chr($v) . substr($this->buffer, $i + 1);
@@ -124,10 +131,11 @@ class StringBuffer {
     $v = intval($v);
     $bytes = bytes($v, SHORT);
     $add = "";
+    $i = $this->normalize($i, false);
     foreach (array_reverse($bytes) as $b) {
       $add .= chr($b);
     }
-    if ($i >= strlen($this->buffer) || $i === -1) {
+    if ($i >= strlen($this->buffer)) {
       $this->buffer .= $add;
     } else {
       $this->buffer = substr($this->buffer, 0, $i) . $add . substr($this->buffer, $i + 2);
@@ -141,7 +149,8 @@ class StringBuffer {
     foreach ($bytes as $b) {
       $add .= chr($b);
     }
-    if ($i >= strlen($this->buffer) || $i === -1) {
+    $i = $this->normalize($i, false);
+    if ($i >= strlen($this->buffer)) {
       $this->buffer .= $add;
     } else {
       $this->buffer = substr($this->buffer, 0, $i) . $add . substr($this->buffer, $i + 2);
@@ -165,7 +174,8 @@ class StringBuffer {
     foreach (array_reverse($bytes) as $b) {
       $add .= chr($b);
     }
-    if ($i >= strlen($this->buffer) || $i === -1) {
+    $i = $this->normalize($i, false);
+    if ($i >= strlen($this->buffer)) {
       $this->buffer .= $add;
     } else {
       $this->buffer = substr($this->buffer, 0, $i) . $add . substr($this->buffer, $i + 4);
@@ -179,7 +189,8 @@ class StringBuffer {
     foreach ($bytes as $b) {
       $add .= chr($b);
     }
-    if ($i >= strlen($this->buffer) || $i === -1) {
+    $i = $this->normalize($i, false);
+    if ($i >= strlen($this->buffer)) {
       $this->buffer .= $add;
     } else {
       $this->buffer = substr($this->buffer, 0, $i) . $add . substr($this->buffer, $i + 4);
@@ -198,6 +209,7 @@ class StringBuffer {
   }
   function writeFloatLE($v, $i) {
     $bytes = bytes($v, FLOATV);
+    $i = $this->normalize($i, false);
     foreach (array_reverse($bytes) as $idx => $b) {
       $this->writeUInt8($b, $i + $idx);
     }
@@ -205,6 +217,7 @@ class StringBuffer {
   }
   function writeFloatBE($v, $i) {
     $bytes = bytes($v, FLOATV);
+    $i = $this->normalize($i, false);
     foreach ($bytes as $idx => $b) {
       $this->writeUInt8($b, $i + $idx);
     }
@@ -212,6 +225,7 @@ class StringBuffer {
   }
   function writeDoubleLE($v, $i) {
     $bytes = bytes($v, DOUBLEV);
+    $i = $this->normalize($i, false);
     foreach (array_reverse($bytes) as $idx => $b) {
       $this->writeUInt8($b, $i + $idx);
     }
@@ -219,23 +233,28 @@ class StringBuffer {
   }
   function writeDoubleBE($v, $i) {
     $bytes = bytes($v, DOUBLEV);
+    $i = $this->normalize($i, false);
     foreach ($bytes as $idx => $b) {
       $this->writeUInt8($b, $i + $idx);
     }
     return $i + 8;
   }
   function readUInt8($i) {
+    $i = $this->normalize($i, true);
     return ord($this->buffer[$i]);
   }
   function readInt8($i) {
+    $i = $this->normalize($i, true);
     $v = ord($this->buffer[$i]);
     if ((0x80 & $v) !== 0) { return -complement($v, 8); }
     return $v;
   }
   function readUInt16LE($i) {
+    $i = $this->normalize($i, true);
     return ord($this->buffer[$i]) | (ord($this->buffer[$i + 1]) << 8);
   }
   function readUInt16BE($i) {
+    $i = $this->normalize($i, true);
     return (ord($this->buffer[$i]) << 8) | ord($this->buffer[$i + 1]);
   }
   function readInt16LE($i) {
@@ -249,9 +268,11 @@ class StringBuffer {
     return $v;
   }
   function readUInt32LE($i) {
+    $i = $this->normalize($i, true);
     return ord($this->buffer[$i]) | (ord($this->buffer[$i + 1]) << 8) | (ord($this->buffer[$i + 2]) << 16) | (ord($this->buffer[$i + 3]) << 24);
   }
   function readUInt32BE($i) {
+    $i = $this->normalize($i, true);
     return (ord($this->buffer[$i]) << 24) | (ord($this->buffer[$i + 1]) << 16) | (ord($this->buffer[$i + 2]) << 8) | ord($this->buffer[$i + 3]);
   }
   function readInt32LE($i) {
@@ -270,6 +291,7 @@ class StringBuffer {
   }
   function readFloatLE($i) {
     $bytes = array();
+    $i = $this->normalize($i, true);
     for ($j = 0; $j < 4; ++$j) {
       $bytes[] = $this->readUInt8($i + $j);
     }
@@ -277,6 +299,7 @@ class StringBuffer {
   }
   function readFloatBE($i) {
     $bytes = array();
+    $i = $this->normalize($i, true);
     for ($j = 0; $j < 4; ++$j) {
       $bytes[] = $this->readUInt8($i + $j);
     }
@@ -284,6 +307,7 @@ class StringBuffer {
   }
   function readDoubleLE($i) {
     $bytes = array();
+    $i = $this->normalize($i, true);
     for ($j = 0; $j < 8; ++$j) {
       $bytes[] = $this->readUInt8($i + $j);
     }
@@ -291,6 +315,7 @@ class StringBuffer {
   }
   function readDoubleBE($i) {
     $bytes = array();
+    $i = $this->normalize($i, true);
     for ($j = 0; $j < 8; ++$j) {
       $bytes[] = $this->readUInt8($i + $j);
     }
@@ -302,6 +327,9 @@ class StringBuffer {
     if (!isset($args[1])) $offset = 0;
     else $offset = $args[1];
     if (!isset($args[2])) $end = strlen($this->buffer);
+    else $end = $args[2];
+    $offset = $this->normalize($offset, false);
+    $end = $this->normalize($end, false);
     $addendum = "";
     for ($i = $offset; $i < $end; ++$i) {
       $addendum .= chr($val);
@@ -314,6 +342,9 @@ class StringBuffer {
     if (!isset($args[0])) $start = 0;
     else $start = $args[0];
     if (!isset($args[1])) $end = strlen($this->buffer);
+    else $end = $args[1];
+    $start = $this->normalize($start, true);
+    $end = $this->normalize($end, true);
     $ret = new self();
     $ret->buffer = substr($this->buffer, $start, $end - $start);
     return $ret;
@@ -326,6 +357,9 @@ class StringBuffer {
     else $sourceStart = $args[2];
     if (!isset($args[3])) $sourceEnd = strlen($this->buffer);
     else $sourceEnd = $args[3];
+    $start = $this->normalize($start, false);
+    $sourceStart = $this->normalize($sourceStart, true);
+    $sourceEnd = $this->normalize($sourceEnd, true);
     $target = $args[0];
     $target->buffer = substr($target->buffer, 0, $start) . substr($this->buffer, $sourceStart, $sourceEnd - $sourceStart) . substr($this->buffer, $start + $sourceEnd - $sourceStart);
     return $this;
@@ -337,11 +371,13 @@ class StringBuffer {
     return $this->buffer;
   }
   function write($str, $offset) {
+    $offset = $this->normalize($offset, false);
     for ($i = 0; $i < strlen($str); ++$i) {
       $this->writeUInt8(ord($str[$i]), $offset + $i);
     }
   }
   function get($offset) {
+    $offset = $this->normalize($offset, true);
     return ord($this->buffer[$offset]);
   }
 }
