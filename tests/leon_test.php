@@ -4,6 +4,17 @@
   use LEON\RegExp;
   use LEON\Date;
   use LEON\Undefined;
+  class Dummy {
+    public $woop = null;
+    public $doop = null;
+    function __construct() {
+      $args = func_get_args();
+      $val = $args[0];
+      $do = $args[1];
+      $this->woop = $val;
+      $this->doop = $do;
+    }
+  }
   class LEONTest extends PHPUnit_Framework_TestCase {
     function test_bijection() {
       $payload = array();
@@ -82,6 +93,11 @@
     }
     function test_regexp_with_modifier() {
       $this->assertEquals(leon_decode(leon_encode(new LEON\RegExp('54', 'i')))->toString(), '/54/i');
+    }
+    function test_object() {
+      $bounce = leon_decode(leon_encode(new Dummy('woop', 'doop')));
+      $this->assertEquals($bounce['woop'], 'woop');
+      $this->assertEquals($bounce['doop'], 'doop');
     }
   }
 ?>

@@ -18,5 +18,7 @@ LEON provides special classes to serialize/deserialize special JavaScript values
 
 The value of `NaN` is deserialized into an instance of `LEON\NaN` and `undefined` deserializes to an instance of `LEON\Undefined`. If you want to serialize/deserialize a `Buffer` object you must use the `LEON\StringBuffer` class, which provides all the methods that a Node.js `Buffer` provides for reading and writing data.
 
+In addition to arrays, you can also serialize objects, but only public properties will be serialized, and it will treat the data as an associative array.
+
 ## License
 MIT

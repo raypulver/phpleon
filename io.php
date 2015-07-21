@@ -28,6 +28,7 @@ define("REGEXP", 0x17);
 define("NANV", 0x18);
 define("INFINITY", 0x19);
 define("MINUSINFINITY", 0x1A);
+define("NATIVEOBJECT", 0x1B);
 define("EMPTYINDEX", 0xFF);
 function is_hash($arr) {
   return array_keys($arr) != range(0, count($arr) - 1);
@@ -246,6 +247,7 @@ function type_check ($val) {
     if ($val instanceof RegExp) return REGEXP;
     if ($val instanceof Infinity) return INFINITY;
     if ($val instanceof MinusInfinity) return MINUSINFINITY;
+    return NATIVEOBJECT;
   }
   if (is_array($val)) {
     if (is_hash($val)) return OBJECTV;
@@ -303,7 +305,11 @@ class Encoder {
     if (is_array($spec)) {
       if (is_hash($spec)) {
         foreach ($spec as $k => $v) {
-          $this->writeValueWithSpec($val[$k], $v);
+          if (is_object($val)) {
+            $this->writeValueWithSpec($val->{$k}, $v);
+          } else {
+            $this->writeValueWithSpec($val[$k], $v);
+          }
         }
       } else { 
         $this->writeValue(count($val), type_check(count($val)));
@@ -324,7 +330,11 @@ class Encoder {
     if (count($args) >= 3) $implicit = $args[2];
     else $implicit = FALSE;
     $typeByte = new StringBuffer();
-    $typeByte->writeUInt8($type, 0);
+    if ($type === NATIVEOBJECT) {
+      $typeByte->writeUInt8(OBJECTV, 0);
+    } else {
+      $typeByte->writeUInt8($type, 0);
+    }
     if ($type === UNDEFINED || $type === TRUEVAL || $type === FALSEVAL || $type === NULLVAL || $type === NANV || $type === MINUSINFINITY || $type === INFINITY) {
       $this->append($typeByte);
       return 1;
@@ -395,6 +405,14 @@ class Encoder {
         $this->writeValue($tmp, type_check($tmp));
       }
       return;
+    } else if ($type === NATIVEOBJECT) {
+      $index = match_layout($val, $this->stringIndex, $this->OLI);
+      $this->writeValue($index, $this->OLItype, true);
+      for ($i = 0; $i < count($this->OLI[$index]); ++$i) {
+        $tmp = $val->{$this->stringIndex[$this->OLI[$index][$i]]};
+        $this->writeValue($tmp, type_check($tmp));
+      }
+      return;
     } else if ($type === BUFFER) {
       $len = strlen($val->buffer);
       $this->writeValue($len, type_check($len));
@@ -456,7 +474,14 @@ class Encoder {
   }
 }
 function match_layout ($val, $stringIndex, $OLI) {
-  $keys = array_keys($val);
+  if (is_object($val)) {
+    $keys = array();
+    foreach (get_object_vars($val) as $k => $v) {
+      $keys[] = $k;
+    }
+  } else {
+    $keys = array_keys($val);
+  }
   $layout = array();
   for ($i = 0; $i < count($keys); ++$i) {
     $layout[] = array_search($keys[$i], $stringIndex);
@@ -473,7 +498,16 @@ function match_layout ($val, $stringIndex, $OLI) {
 function gather_layouts($val, $stringIndex, &$ret, $branch) {
   if (!isset($ret)) $ret = array();
   if (!isset($branch)) $branch = $val;
-  if (is_array($branch)) {
+  if (is_object($branch)) {
+    $ret[] = array();
+    $vars = get_object_vars($branch);
+    foreach ($vars as $k => $v) {
+      $ret[count($ret) - 1][] = array_search($k, $stringIndex);
+    }
+    foreach ($vars as $k => $v) {
+      gather_layouts($val, $stringIndex, $ret, $v);
+    }
+  } else if (is_array($branch)) {
     if (is_hash($branch)) {
       $ret[] = array();
       foreach ($branch as $k => $v) {
@@ -489,7 +523,15 @@ function gather_layouts($val, $stringIndex, &$ret, $branch) {
 function gather_strings($val, &$ret, $branch) {
   if (!isset($ret)) $ret = array();
   if (!isset($branch)) $branch = $val;
-  if (is_array($branch)) {
+  if (is_object($branch)) {
+    $vars = get_object_vars($branch);
+    foreach ($vars as $k => $v) {
+      set_push($ret, $k);
+    }
+    foreach ($vars as $k => $v) {
+      gather_strings($val, $ret, $v);
+    }
+  } else if (is_array($branch)) {
     if (is_hash($branch)) {
       foreach ($branch as $k => $v) {
         set_push($ret, $k);
