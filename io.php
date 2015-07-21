@@ -171,8 +171,10 @@ class Parser {
     else if (is_array($spec)) {
       $ret = array();
       if (is_hash($spec)) {
-        foreach ($spec as $k => $v) {
-           $ret[$k] = $this->parseValueWithSpec($v);
+        $keys = array_keys($spec);
+        sort($keys);
+        foreach ($keys as $k) {
+           $ret[$k] = $this->parseValueWithSpec($spec[$k]);
         }
         return $ret;
       }
@@ -304,11 +306,15 @@ class Encoder {
     else $spec = $this->spec;
     if (is_array($spec)) {
       if (is_hash($spec)) {
-        foreach ($spec as $k => $v) {
-          if (is_object($val)) {
-            $this->writeValueWithSpec($val->{$k}, $v);
-          } else {
-            $this->writeValueWithSpec($val[$k], $v);
+        $keys = array_keys($spec);
+        sort($keys);
+        if (is_object($val)) {
+          foreach ($keys as $k) {
+            $this->writeValueWithSpec($val->{$k}, $spec[$k]);
+          }
+        } else {
+          foreach ($keys as $k) {
+            $this->writeValueWithSpec($val[$k], $spec[$k]);
           }
         }
       } else { 
