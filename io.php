@@ -97,10 +97,9 @@ class Parser {
   }
   function readString() {
     $ret = "";
-    for (;;) {
-      $char = $this->buffer->readUInt8();
-      if ($char === 0) break;
-      $ret .= chr($char);
+    $len = $this->buffer->readValue($this->buffer->readUInt8());
+    for ($i = 0; $i < $len; ++$i) {
+      $ret .= chr($this->buffer->readUInt8());
     }
     return $ret;
   }
@@ -425,7 +424,7 @@ class Encoder {
       for ($i = 0; $i < $len; ++$i) {
         $this->writeValue(ord($val->buffer[$i]), CHAR, true); 
       }
-      return $typeCheck + strlen($val->buffer);
+      return $byteCount + strlen($val->buffer);
     } else if ($type === REGEXP) {
       $this->writeString($val->pattern);
       $this->writeString($val->modifier);
@@ -436,14 +435,12 @@ class Encoder {
     }
   }
   function writeString ($str) {
-    $bytes = new StringBuffer();
     $len = strlen($str);
+    $this->writeValue($len, type_check($len));
     for ($i = 0; $i < $len; ++$i) {
-      $bytes->writeUInt8(ord($str[$i]), -1);
+      $this->writeValue(ord($str[$i]), CHAR, true);
     }
-    $bytes->writeUInt8(0, -1);
-    $this->append($bytes);
-    return $len + 1;
+    return;
   }
   function writeOLI () {
     if (count($this->stringIndex) === 0) return $this;
