@@ -274,13 +274,13 @@ function type_check () {
     }
     if ($val < 0) {
       $val = abs($val);
-      if ($val < 1 << 6) return SIGNED | CHAR;
-      if ($val < 1 << 14) return SIGNED | SHORT;
-      if ($val < 1 << 30) return SIGNED | INTV;
+      if ($val <= 1 << 7) return SIGNED | CHAR;
+      if ($val <= 1 << 15) return SIGNED | SHORT;
+      if ($val <= 1 << 31) return SIGNED | INTV;
       return DOUBLEV;
     }
-    if ($val < 1 << 7) return CHAR;
-    if ($val < 1 << 15) return SHORT;
+    if ($val < 1 << 8) return CHAR;
+    if ($val < 1 << 16) return SHORT;
     if ($val < pow(2, 32)) return INTV;
     return DOUBLEV;
   }

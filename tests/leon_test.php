@@ -129,5 +129,11 @@
         ))
       ));
     }
+    function test_bytelength_detection () {
+      $this->assertEquals(ord(leon_encode(-128)[1]), LEON_CHAR);
+      $this->assertEquals(ord(leon_encode(-129)[1]), LEON_SHORT);
+      $this->assertEquals(ord(leon_encode(255)[1]), LEON_UNSIGNED_CHAR);
+      $this->assertEquals(ord(leon_encode(256)[1]), LEON_UNSIGNED_SHORT);
+    }
   }
 ?>
