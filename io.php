@@ -257,8 +257,14 @@ function type_check ($val) {
   if (is_string($val)) return STRINGV;
   if (is_numeric($val)) {
     if (is_double($val)) {
-      if (is_float($val)) return FLOATV;
-      return DOUBLEV;
+      $sig = abs($val);
+      $log = log($sig)/log(2);
+      $log = ($log < 0 ? ceil($log) : floor($log));
+      $exp = 105 + $log;
+      if ($exp < 0 || $exp > 256) return DOUBLEV;
+      $sig *= pow(2, -$log + 23);
+      if (is_double($sig)) return DOUBLEV;
+      return FLOATV;
     }
     if ($val < 0) {
       $val = abs($val);
