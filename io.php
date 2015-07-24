@@ -236,7 +236,11 @@ class Parser {
     }
   }
 }
-function type_check ($val) {
+function type_check () {
+  $args = func_get_args();
+  $val = $args[0];
+  if (count($args) > 1) $fp = $args[1];
+  else $fp = false;
   if ($val === NULL) return NULLVAL;
   if ($val === TRUE) return TRUEVAL;
   if ($val === FALSE) return FALSEVAL;
@@ -256,14 +260,16 @@ function type_check ($val) {
   }
   if (is_string($val)) return STRINGV;
   if (is_numeric($val)) {
-    if (is_double($val)) {
+    if ($fp || is_double($val)) {
       $sig = abs($val);
       $log = log($sig)/log(2);
       $log = ($log < 0 ? ceil($log) : floor($log));
       $exp = 105 + $log;
       if ($exp < 0 || $exp > 256) return DOUBLEV;
       $sig *= pow(2, -$log + 23);
-      if (is_double($sig)) return DOUBLEV;
+      if (floor($sig) != $sig) {
+        return DOUBLEV;
+      }
       return FLOATV;
     }
     if ($val < 0) {

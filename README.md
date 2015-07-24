@@ -20,5 +20,7 @@ The value of `NaN` is deserialized into an instance of `LEON\NaN` and `undefined
 
 In addition to arrays, you can also serialize objects, but only public properties will be serialized, and it will treat the data as an associative array.
 
+If you want to create a template to be passed to `LEON\Channel` dynamically, you can pass an example value of the data you wish to serialize to `LEON\Channel::toTemplate`.
+
 ## License
 MIT

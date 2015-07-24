@@ -67,9 +67,8 @@
       $this->assertEquals($channel->decode($channel->encode($payload)), $payload);
     }
     function test_float() {
-      $EPS = 0.0001;
-      $payload = -232.2222;
-      $this->assertEquals(abs(leon_decode(leon_encode($payload)) - $payload) < $EPS, TRUE);
+      $payload = -0.5;
+      $this->assertEquals(leon_decode(leon_encode($payload)), $payload);
     }
     function test_double() {
       $payload = -232.222;
@@ -100,10 +99,35 @@
       $this->assertEquals($bounce['doop'], 'doop');
     }
     function test_float_detection () {
-      $ser = leon_encode(((1 << 23) - 1) * pow(2, -((1 << 7) - 1)));
-      $this->assertEquals(ord($ser[1]), 6);
-      $ser = leon_encode(((1 << 23)) * pow(2, -((1 << 8) - 1)));
+      $ser = leon_encode((1 << 23) * pow(2, -((1 << 7))));
+      $this->assertEquals(6, ord($ser[1]));
+      $ser = leon_encode(((1 << 24)) * pow(2, -((1 << 8) - 1)));
       $this->assertEquals(ord($ser[1]), 7);
+    }
+    function test_template() {
+      $obj = array(
+        'woopdoop' => 5,
+        'shoopdoop' => array(510, -510, 1, 0.5),
+        'doopwoop' => array(array(
+          'a' => true,
+          'b' => 5,
+          'c' => array(5, 2, 1),
+          'd' => 'woop',
+          'e' => new LEON\Date(1300000000)
+        ))
+      );
+      $template = LEON\Channel::toTemplate($obj);
+      $this->assertEquals($template, array(
+        'woopdoop' => LEON_UNSIGNED_CHAR,
+        'shoopdoop' => array(LEON_FLOAT),
+        'doopwoop' => array(array(
+          'a' => LEON_BOOLEAN,
+          'b' => LEON_UNSIGNED_CHAR,
+          'c' => array(LEON_UNSIGNED_CHAR),
+          'd' => LEON_STRING,
+          'e' => LEON_DATE
+        ))
+      ));
     }
   }
 ?>

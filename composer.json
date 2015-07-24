@@ -1,6 +1,6 @@
 {
   "name": "leon/leon",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "LEON serialization for PHP.",
   "require": {
     "php": ">=5.3.0"
