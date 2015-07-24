@@ -99,9 +99,11 @@
       $this->assertEquals($bounce['doop'], 'doop');
     }
     function test_float_detection () {
-      $ser = leon_encode((1 << 23) * pow(2, -((1 << 7))));
+      $ser = leon_encode(((1 << 24) - 1) * pow(2, -127));
       $this->assertEquals(6, ord($ser[1]));
-      $ser = leon_encode(((1 << 24)) * pow(2, -((1 << 8) - 1)));
+      $ser = leon_encode(((1 << 24) - 1) * pow(2, -1 - 127));
+      $this->assertEquals(ord($ser[1]), 7);
+      $ser = leon_encode(((1 << 24) + 1) * pow(2, -127));
       $this->assertEquals(ord($ser[1]), 7);
     }
     function test_template() {

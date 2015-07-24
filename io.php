@@ -264,9 +264,9 @@ function type_check () {
       $sig = abs($val);
       $log = log($sig)/log(2);
       $log = ($log < 0 ? ceil($log) : floor($log));
-      $exp = 105 + $log;
-      if ($exp < 0 || $exp > 256) return DOUBLEV;
-      $sig *= pow(2, -$log + 23);
+      $exp = 103 + $log;
+      if ($exp < 0 || $exp > 255) return DOUBLEV;
+      $sig *= pow(2, -$log + 24);
       if (floor($sig) != $sig) {
         return DOUBLEV;
       }
