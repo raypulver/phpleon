@@ -108,9 +108,13 @@ class StringBuffer {
   }
   private function normalize($i, $isRead) {
     if ($i < 0 && strlen($this->buffer) === 0) return 0;
-    if ($i === -1) $i = strlen($this->buffer) - ($isRead ? 1 : 0);
-    else if ($i < 0) $i = strlen($this->buffer) + ($isRead ? 0: 1) + ($i % (strlen($this->buffer) + ($isRead ? 0: 1)) ); 
-    return $i;
+    if ($i < 0) {
+      $offset = strlen($this->buffer) + ($isRead ? 0: 1) + $i;
+    } else {
+      $offset = $i;
+    }
+    if ($offset < 0 || $offset > strlen($this->buffer) - ($isRead ? 1: 0)) throw new Exception('Tried to ' . ($isRead ? 'read' : 'write') . ' at index ' . $i . ' but it is out of range.');
+    return $offset;
   }
   function writeUInt8($v, $i) {
     $v = intval($v);
