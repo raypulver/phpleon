@@ -115,7 +115,7 @@ class Parser {
     return new RegExp($this->readString(), $this->readString());
   }
   function readDate() {
-    return new Date($this->buffer->readUInt32());
+    return new Date($this->buffer->readDouble());
   }
   function parseSI() {
     if ($this->state & 0x01 !== 0) return;
@@ -442,8 +442,8 @@ class Encoder {
       $this->writeString($val->modifier);
       return $byteCount + 2 + strlen($val->pattern) + strlen($val->modifier);
     } else if ($type === DATEVAL) {
-      $this->writeValue($val->timestamp, INTV, true);
-      return $byteCount + 4;
+      $this->writeValue($val->timestamp, DOUBLEV, true);
+      return $byteCount + 8;
     }
   }
   function writeString ($str) {
